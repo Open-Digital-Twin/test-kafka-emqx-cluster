@@ -38,7 +38,7 @@ services:
       - mqtt-cluster
     environment:
       - RUST_LOG=info
-      - CONTAINER_DELAY_S=20
+      - CONTAINER_DELAY_S=1
       - MQTT_BROKER_ADDRESS=mqtt-cluster
       - MQTT_BROKER_PORT=1883
       - MQTT_CLIENT_QOS=1
@@ -107,9 +107,15 @@ services:
       - zookeeper
       - kafka
       - mqtt-cluster
+  kafka-consumer:
+    build: ./consumer
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      SOURCE_TOPIC: mqtt-source
+      SINK_TOPIC: mqtt-sink
   mqtt-sub:
     image: efrecon/mqtt-client
-    command: sub -h mqtt-cluster -t connect-custom
+    command: sub -h mqtt-cluster -t mqtt-sink
 
 networks:
   default:
