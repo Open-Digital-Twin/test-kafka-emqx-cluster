@@ -13,13 +13,34 @@ class Consumer {
         this.producer = producer;
     }
 
-    consume() {}
-
     handleData({ value, size, topic, offset, partition, key, timestamp }) {
         console.log(`Consumed record with key ${key} and value ${value} of partition ${partition} @ offset ${offset}. Updated total count to ${++this.seen}`);
-            
+        
+        // TODO: Compute something with value then assign to product.
+        const product = value;
+
         if (this.producer) {
-            this.producer.produce(value);
+            this.producer.produce(product);
+        }
+    }
+
+    init(type) {
+        switch (type) {
+            case 'CONSUMER_STANDARD_FLOWING':
+            case 'CONSUMER_STANDARD_NON_FLOWING':
+                this.consumer = new Kafka.KafkaConsumer({
+                    'group.id': 'kafka',
+                    'metadata.broker.list': this.kafkaBrokerList,
+                }, {});
+                
+                process.on('SIGINT', () => {
+                    console.log('\nDisconnecting consumer ...');
+                    this.consumer.disconnect();
+                });
+            case 'CONSUMER_STREAMING':
+                break;
+            default:
+                console.log('Wrong consumer type.');
         }
     }
 }
@@ -27,19 +48,15 @@ class Consumer {
 export class ConsumerStandardFlowing extends Consumer {
     type = 'CONSUMER_STANDARD_FLOWING';
     consumer;
+
+    constructor(settings, producer) {
+        super(settings, producer);
+        
+        this.init(this.type);
+    }
     
     consume() {
-        this.consumer = new Kafka.KafkaConsumer({
-            'group.id': 'kafka',
-            'metadata.broker.list': this.kafkaBrokerList,
-        }, {});
-
         this.consumer.connect();
-
-        process.on('SIGINT', () => {
-            console.log('\nDisconnecting consumer ...');
-            this.consumer.disconnect();
-        });
 
         this.consumer
             .on('ready', () => {
@@ -47,28 +64,22 @@ export class ConsumerStandardFlowing extends Consumer {
                 this.consumer.subscribe([this.topic]);
                 this.consumer.consume();
             })
-            .on('data', this.handleData);
+            .on('data', (message) => this.handleData(message));
     }
 }
 
 export class ConsumerStandardNonFlowing extends Consumer {
     type = 'CONSUMER_STANDARD_NON_FLOWING';
     consumer;
+
+    constructor(settings, producer) {
+        super(settings, producer);
+        
+        this.init(this.type);
+    }
     
-    consume(producer) {
-        this.producer = producer;
-
-        this.consumer = new Kafka.KafkaConsumer({
-            'group.id': 'kafka',
-            'metadata.broker.list': this.kafkaBrokerList,
-        }, {});
-
+    consume() {
         this.consumer.connect();
-
-        process.on('SIGINT', () => {
-            console.log('\nDisconnecting consumer ...');
-            this.consumer.disconnect();
-        });
 
         this.consumer
             .on('ready', () => {
@@ -79,7 +90,7 @@ export class ConsumerStandardNonFlowing extends Consumer {
                     this.consumer.consume(1);
                 }, 100);
             })
-            .on('data', this.handleData);
+            .on('data', (message) => this.handleData(message));
     }
 }
 
@@ -87,12 +98,19 @@ export class ConsumerStreaming extends Consumer {
     type = 'CONSUMER_STREAMING';
     stream;
     
+    constructor(settings, producer) {
+        super(settings, producer);
+        
+        this.init(this.type);
+    }
+
     consume() {
         this.stream = Kafka.KafkaConsumer.createReadStream({}, {}, {
             topics: [this.topic]
         });
           
-        this.stream.on('data', this.handleData);
+        this.stream
+            .on('data', (message) => this.handleData(message));
     }
 }
 

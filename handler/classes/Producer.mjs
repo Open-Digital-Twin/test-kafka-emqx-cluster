@@ -6,19 +6,16 @@ class Producer {
 
     constructor(settings) {
         this.topic = settings.sinkTopic;
-
-        this.init(settings);
     }
-
-    init(settings) {}
-    produce() {}
 }
 
 export class ProducerStandard extends Producer {
     type = 'PRODUCER_STANDARD';
     producer;
 
-    init(settings) {
+    constructor(settings) {
+        super(settings);
+
         this.producer = new Kafka.Producer({
             'metadata.broker.list': settings.kafkaBrokerList
         });
@@ -35,6 +32,8 @@ export class ProducerStandard extends Producer {
 
     produce(value) {
         try {
+            console.log('Producing via standard mode.');
+
             this.producer.produce(
                 this.topic,
                 null,
@@ -53,15 +52,19 @@ export class ProducerStreaming extends Producer {
     type = 'PRODUCER_STREAMING';
     stream;
 
-    init(settings) {
+    constructor(settings) {
+        super(settings)
+
         stream = Kafka.Producer.createWriteStream({
             'metadata.broker.list': settings.kafkaBrokerList
-          }, {}, {
+        }, {}, {
             topic: this.topic
-          });
+        });
     }
 
     produce(value) {
+        console.log('Producing via streaming mode.');
+
         // Writes a message to the stream
         const queuedSuccess = this.stream.write(Buffer.from(value));
 
