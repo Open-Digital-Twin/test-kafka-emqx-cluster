@@ -107,8 +107,8 @@ services:
       - zookeeper
       - kafka
       - mqtt-cluster
-  kafka-consumer:
-    build: ./consumer
+  kafka-handler:
+    build: ./handler
     environment:
       BOOTSTRAP_SERVERS: kafka:9092
       SOURCE_TOPIC: mqtt-source

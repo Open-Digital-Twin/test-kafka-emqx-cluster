@@ -1,5 +1,5 @@
 {
-    "name": "consumer-nodejs",
+    "name": "handler-nodejs",
     "private": true,
     "version": "7.0.0",
     "engines": {
@@ -8,5 +8,9 @@
     "dependencies": {
         "minimist": "^1.2.3",
         "node-rdkafka": "^2.5.1"
+    },
+    "type": "module",
+    "scripts": {
+        "start": "node --experimental-specifier-resolution=node index.mjs"
     }
 }
