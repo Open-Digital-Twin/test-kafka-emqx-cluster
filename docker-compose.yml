@@ -72,7 +72,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
-      - ./kafka/data:/var/lib/kafka/data
+      - ./kafka-data/data:/var/lib/kafka/data
     depends_on:
       - zookeeper
     networks:

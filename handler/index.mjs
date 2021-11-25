@@ -51,6 +51,6 @@ switch (process.env.RUN_MODE_CONSUMER) {
         break;
 }
 
-console.log(consumer)
+console.log({consumer, producer})
 
 consumer.consume();
