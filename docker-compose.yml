@@ -113,9 +113,18 @@ services:
       BOOTSTRAP_SERVERS: kafka:9092
       SOURCE_TOPIC: mqtt-source
       SINK_TOPIC: mqtt-sink
+    depends_on:
+      - zookeeper
+      - kafka
+      - kafka-connect
+      - mqtt-cluster
   mqtt-sub:
     image: efrecon/mqtt-client
     command: sub -h mqtt-cluster -t mqtt-sink
+    depends_on:
+      - zookeeper
+      - kafka
+      - mqtt-cluster
 
 networks:
   default:
